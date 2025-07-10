@@ -33,19 +33,53 @@ const letterScores = {
 
 let validWords = new Set();
 let definitions = {};
+let dictionaryReady = false;
 
 window.addEventListener("load", () => {
+  setupInputListener();
+  updateTurnUI();
+
   fetch("words.json")
     .then((res) => res.json())
     .then((data) => {
       initializeWords(data);
-      setupInputListener();
-      updateTurnUI();
+      dictionaryReady = true;
+      document.getElementById("word-score").innerText =
+        "Dictionary loaded. You can start playing!";
+      document.getElementById("wordInput").disabled = false;
+      document.getElementById("wordBonus").disabled = false;
+
+      const buttons = document.querySelectorAll(".buttons button");
+      buttons.forEach((button) => {
+        if (
+          button.textContent.includes("Dictionary Lookup") ||
+          button.textContent.includes("Undo")
+        ) {
+          button.disabled = false;
+        } else {
+          button.disabled = false;
+        }
+      });
     })
     .catch((err) => {
       console.error("Failed to load words.json", err);
       alert("Failed to load word list. The app won’t work properly.");
     });
+
+  document.getElementById("wordInput").disabled = true;
+  document.getElementById("wordBonus").disabled = true;
+
+  const buttons = document.querySelectorAll(".buttons button");
+  buttons.forEach((button) => {
+    if (
+      button.textContent.includes("Dictionary Lookup") ||
+      button.textContent.includes("Undo")
+    ) {
+      button.disabled = false;
+    } else {
+      button.disabled = true;
+    }
+  });
 });
 
 function initializeWords(data) {
@@ -122,6 +156,11 @@ function getLetterBonusMap() {
 }
 
 function addToPlayer(player) {
+  if (!dictionaryReady) {
+    alert("Dictionary is still loading, please wait...");
+    return;
+  }
+
   if (player !== currentPlayer) {
     alert(`It's Player ${currentPlayer}'s turn!`);
     return;
@@ -197,18 +236,13 @@ function undoLastAction() {
 function updateTurnUI() {
   for (let p = 1; p <= 2; p++) {
     const playerDiv = document.getElementById(`score${p}`).parentElement;
-    if (p === currentPlayer) {
-      playerDiv.style.opacity = "1";
-    } else {
-      playerDiv.style.opacity = "0.5";
-    }
+    playerDiv.style.opacity = p === currentPlayer ? "1" : "0.5";
   }
 
   const buttons = document.querySelectorAll(".buttons button");
   buttons.forEach((button) => {
-    if (button.textContent.includes(`Player ${currentPlayer}`)) {
-      button.disabled = false;
-    } else if (
+    if (
+      button.textContent.includes(`Player ${currentPlayer}`) ||
       button.textContent.includes("Dictionary Lookup") ||
       button.textContent.includes("Undo")
     ) {
