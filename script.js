@@ -45,7 +45,7 @@ window.addEventListener("load", () => {
       initializeWords(data);
       dictionaryReady = true;
       document.getElementById("word-score").innerText =
-        "Dictionary loaded. You can start playing!";
+        "Dictionary loaded.";
       document.getElementById("wordInput").disabled = false;
       document.getElementById("wordBonus").disabled = false;
 
