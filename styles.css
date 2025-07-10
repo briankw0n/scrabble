@@ -195,8 +195,9 @@ label[for="wordBonus"] {
 
 @media (max-width: 480px) {
   body {
-    padding: 0 1em;
-    font-size: 1rem;
+    align-items: flex-start;
+    padding: 1rem;
+    overflow-y: hidden;
   }
 
   .container {
@@ -248,7 +249,7 @@ label[for="wordBonus"] {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.8rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
   }
 
   .button-row {
@@ -267,13 +268,11 @@ label[for="wordBonus"] {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.6rem;
-    padding-bottom: 0.3rem;
   }
 
   .letter-bonus {
-    flex: 1 1 calc(33.33% - 0.4rem);
-    max-width: calc(33.33% - 0.4rem);
+    flex: 1 1 calc(50% - 0.4rem);
+    max-width: calc(50% - 0.4rem);
     box-sizing: border-box;
     text-align: center;
   }
