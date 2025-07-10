@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #3e2b1e, #1f140b);
+  background-color: #3e2b1e;
   color: #f5e1c1;
   display: flex;
   justify-content: center;
@@ -195,14 +195,16 @@ label[for="wordBonus"] {
 
 @media (max-width: 480px) {
   html {
-    background: linear-gradient(135deg, #3e2b1e, #1f140b);
+    background-color: #3e2b1e;
   }
 
   body {
     align-items: flex-start;
-    padding: 1.75rem 1rem 1rem;
-    overflow-y: hidden;
-    height: 100vh;
+    padding: 1.25rem 1rem;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
+    box-sizing: border-box;
   }
 
   .container {
