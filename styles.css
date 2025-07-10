@@ -194,14 +194,15 @@ label[for="wordBonus"] {
 }
 
 @media (max-width: 480px) {
-html {
-  background-color: #3e2b1e;
-}
+  html {
+    background: linear-gradient(135deg, #3e2b1e, #1f140b);
+  }
 
   body {
     align-items: flex-start;
     padding: 1.75rem 1rem 1rem;
     overflow-y: hidden;
+    height: 100vh;
   }
 
   .container {
