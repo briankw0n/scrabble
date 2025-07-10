@@ -196,7 +196,7 @@ label[for="wordBonus"] {
 @media (max-width: 480px) {
   body {
     align-items: flex-start;
-    padding: 1rem;
+    padding: 2rem 1rem 1rem;
     overflow-y: hidden;
   }
 
