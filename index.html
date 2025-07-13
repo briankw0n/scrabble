@@ -25,20 +25,26 @@
       <div id="scoreboard" class="scoreboard"></div>
 
       <div class="input-section">
+        <div id="wordDisplay" class="word-display"></div>
+
         <input
           type="text"
           id="wordInput"
           placeholder="Enter a word"
           maxlength="15"
         />
-        <div id="letterBonuses"></div>
 
-        <label for="wordBonus">Word Bonus:</label>
-        <select id="wordBonus">
-          <option value="1">None</option>
-          <option value="2">Double Word Score</option>
-          <option value="3">Triple Word Score</option>
-        </select>
+        <div class="word-bonus-row">
+          <label for="wordBonus">Word Bonus:</label>
+          <select id="wordBonus">
+            <option value="1">None</option>
+            <option value="2">Double Word Score</option>
+            <option value="3">Triple Word Score</option>
+          </select>
+        </div>
+
+        <div id="word-score" class="result hidden">Score: 0</div>
+        <div id="definition" class="definition hidden"></div>
 
         <div class="buttons">
           <div class="button-row" id="playerButtons"></div>
@@ -47,9 +53,6 @@
             <button onclick="undoLastAction()">Undo</button>
           </div>
         </div>
-
-        <div id="word-score" class="result">Score: 0</div>
-        <div id="definition" class="definition"></div>
       </div>
     </div>
 
