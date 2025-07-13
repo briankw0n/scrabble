@@ -1,33 +1,15 @@
-const scores = { 1: 0, 2: 0 };
+let scores = {};
 let history = [];
 let currentPlayer = 1;
+let playerNames = {};
+let totalPlayers = 2;
 
 const letterScores = {
-  A: 1,
-  B: 3,
-  C: 3,
-  D: 2,
-  E: 1,
-  F: 4,
-  G: 2,
-  H: 4,
-  I: 1,
-  J: 8,
-  K: 5,
-  L: 1,
-  M: 3,
-  N: 1,
-  O: 1,
-  P: 3,
-  Q: 10,
-  R: 1,
-  S: 1,
-  T: 1,
-  U: 1,
-  V: 4,
-  W: 4,
-  X: 8,
-  Y: 4,
+  A: 1,  B: 3,  C: 3,  D: 2,  E: 1,
+  F: 4,  G: 2,  H: 4,  I: 1,  J: 8,
+  K: 5,  L: 1,  M: 3,  N: 1,  O: 1,
+  P: 3,  Q: 10, R: 1,  S: 1,  T: 1,
+  U: 1,  V: 4,  W: 4,  X: 8,  Y: 4,
   Z: 10,
 };
 
@@ -36,50 +18,19 @@ let definitions = {};
 let dictionaryReady = false;
 
 window.addEventListener("load", () => {
-  setupInputListener();
-  updateTurnUI();
-
   fetch("words.json")
     .then((res) => res.json())
     .then((data) => {
       initializeWords(data);
       dictionaryReady = true;
-      document.getElementById("word-score").innerText =
-        "Dictionary loaded.";
-      document.getElementById("wordInput").disabled = false;
-      document.getElementById("wordBonus").disabled = false;
-
-      const buttons = document.querySelectorAll(".buttons button");
-      buttons.forEach((button) => {
-        if (
-          button.textContent.includes("Dictionary Lookup") ||
-          button.textContent.includes("Undo")
-        ) {
-          button.disabled = false;
-        } else {
-          button.disabled = false;
-        }
-      });
+      const scoreEl = document.getElementById("word-score");
+      if (scoreEl) scoreEl.innerText = "Dictionary loaded.";
     })
-    .catch((err) => {
-      console.error("Failed to load words.json", err);
-      alert("Failed to load word list. The app won’t work properly.");
-    });
+    .catch(() => alert("Failed to load dictionary."));
 
-  document.getElementById("wordInput").disabled = true;
-  document.getElementById("wordBonus").disabled = true;
-
-  const buttons = document.querySelectorAll(".buttons button");
-  buttons.forEach((button) => {
-    if (
-      button.textContent.includes("Dictionary Lookup") ||
-      button.textContent.includes("Undo")
-    ) {
-      button.disabled = false;
-    } else {
-      button.disabled = true;
-    }
-  });
+  setupPlayerCountListener();
+  showSetupScreen();
+  setupInputListener();
 });
 
 function initializeWords(data) {
@@ -87,20 +38,112 @@ function initializeWords(data) {
   definitions = data;
 }
 
+function setupPlayerCountListener() {
+  const playerCountSelect = document.getElementById("playerCount");
+  playerCountSelect.addEventListener("change", showNameInputs);
+}
+
+function showSetupScreen() {
+  document.getElementById("setup-screen").style.display = "block";
+  document.getElementById("game-screen").style.display = "none";
+  showNameInputs();
+}
+
+function showGameScreen() {
+  document.getElementById("setup-screen").style.display = "none";
+  document.getElementById("game-screen").style.display = "block";
+  renderScoreboardAndButtons();
+  updateTurnUI();
+  updateLetterBonuses();
+  updateWordValidity();
+}
+
+function showNameInputs() {
+  const count = parseInt(document.getElementById("playerCount").value, 10);
+  const nameInputsDiv = document.getElementById("nameInputs");
+  nameInputsDiv.innerHTML = "";
+  for (let i = 1; i <= count; i++) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = `playerName${i}`;
+    input.placeholder = `Player ${i} Name`;
+    input.value = `Player ${i}`;
+    input.style.margin = "0.3rem auto";
+    input.style.display = "block";
+    input.style.padding = "0.4rem";
+    input.style.width = "80%";
+    input.style.borderRadius = "5px";
+    nameInputsDiv.appendChild(input);
+  }
+}
+
+function startGame() {
+  totalPlayers = parseInt(document.getElementById("playerCount").value, 10);
+  if (totalPlayers < 2) {
+    alert("Please select at least 2 players.");
+    return;
+  }
+  scores = {};
+  playerNames = {};
+  history = [];
+  for (let i = 1; i <= totalPlayers; i++) {
+    const name =
+      document.getElementById(`playerName${i}`).value.trim() || `Player ${i}`;
+    playerNames[i] = name;
+    scores[i] = 0;
+  }
+  currentPlayer = 1;
+  showGameScreen();
+}
+
+function renderScoreboardAndButtons() {
+  const scoreboard = document.getElementById("scoreboard");
+  const playerButtonsRow = document.getElementById("playerButtons");
+
+  scoreboard.innerHTML = "";
+  playerButtonsRow.innerHTML = "";
+
+  for (let i = 1; i <= totalPlayers; i++) {
+    const playerDiv = document.createElement("div");
+    playerDiv.className = "player";
+
+    const nameH2 = document.createElement("h2");
+    nameH2.textContent = playerNames[i];
+    playerDiv.appendChild(nameH2);
+
+    const scoreTile = document.createElement("div");
+    scoreTile.id = `score${i}`;
+    scoreTile.className = "score-tile";
+    scoreTile.textContent = scores[i];
+    playerDiv.appendChild(scoreTile);
+
+    scoreboard.appendChild(playerDiv);
+
+    const btn = document.createElement("button");
+    btn.textContent = `Add to ${playerNames[i]}`;
+    btn.onclick = () => addToPlayer(i);
+    playerButtonsRow.appendChild(btn);
+  }
+}
+
 function setupInputListener() {
   const input = document.getElementById("wordInput");
-  input.addEventListener("input", updateLetterBonuses);
-  updateLetterBonuses();
+  if (input) {
+    input.addEventListener("input", () => {
+      updateLetterBonuses();
+      updateWordValidity();
+    });
+  }
 }
 
 function updateLetterBonuses() {
-  const word = document
-    .getElementById("wordInput")
-    .value.toUpperCase()
-    .replace(/[^A-Z]/g, "");
+  const wordInput = document.getElementById("wordInput");
+  if (!wordInput) return;
+  const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
   const container = document.getElementById("letterBonuses");
-  container.innerHTML = "";
+  if (!container) return;
 
+  container.innerHTML = "";
   for (let i = 0; i < word.length; i++) {
     const letter = word[i];
     const div = document.createElement("div");
@@ -112,18 +155,11 @@ function updateLetterBonuses() {
 
     const select = document.createElement("select");
     select.dataset.index = i;
-    select.title = `Select bonus for letter ${letter}`;
 
-    const options = [
-      { val: 1, text: "None" },
-      { val: 2, text: "Double Letter" },
-      { val: 3, text: "Triple Letter" },
-    ];
-
-    options.forEach((opt) => {
+    ["None", "Double Letter", "Triple Letter"].forEach((text, idx) => {
       const option = document.createElement("option");
-      option.value = opt.val;
-      option.text = opt.text;
+      option.value = idx + 1;
+      option.textContent = text;
       select.appendChild(option);
     });
 
@@ -132,81 +168,105 @@ function updateLetterBonuses() {
   }
 }
 
-function calculateScrabbleScoreWithBonuses(word, letterBonusMap, wordBonus) {
-  let baseScore = 0;
-  for (let i = 0; i < word.length; i++) {
-    const letter = word[i].toUpperCase();
-    const letterScore = letterScores[letter] || 0;
-    const bonus = letterBonusMap[i] || 1;
-    baseScore += letterScore * bonus;
-  }
-  return baseScore * wordBonus;
+function getLetterBonusMap() {
+  const bonusMap = {};
+  document.querySelectorAll("#letterBonuses select").forEach((sel) => {
+    bonusMap[parseInt(sel.dataset.index)] = parseInt(sel.value);
+  });
+  return bonusMap;
 }
 
-function getLetterBonusMap() {
-  const letterBonusElements = [
-    ...document.querySelectorAll("#letterBonuses select"),
-  ];
-  const letterBonusMap = {};
-  letterBonusElements.forEach((sel) => {
-    const idx = parseInt(sel.dataset.index, 10);
-    letterBonusMap[idx] = parseInt(sel.value, 10);
-  });
-  return letterBonusMap;
+function calculateScrabbleScoreWithBonuses(word, letterBonusMap, wordBonus) {
+  return (
+    word
+      .toUpperCase()
+      .split("")
+      .reduce(
+        (sum, char, i) =>
+          sum + (letterScores[char] || 0) * (letterBonusMap[i] || 1),
+        0
+      ) * wordBonus
+  );
 }
 
 function addToPlayer(player) {
   if (!dictionaryReady) {
-    alert("Dictionary is still loading, please wait...");
+    alert("Dictionary is still loading.");
     return;
   }
 
   if (player !== currentPlayer) {
-    alert(`It's Player ${currentPlayer}'s turn!`);
+    alert(`It's ${playerNames[currentPlayer]}'s turn.`);
     return;
   }
 
   const wordInput = document.getElementById("wordInput");
-  const wordRaw = wordInput.value.trim().toLowerCase();
+  if (!wordInput) return;
+  const word = wordInput.value.trim().toLowerCase();
 
-  if (!wordRaw) return;
-
-  if (!validWords.has(wordRaw)) {
+  if (!word || !validWords.has(word)) {
     document.getElementById("word-score").innerText = "❌ Not a playable word";
     document.getElementById("definition").innerText = "";
     return;
   }
 
-  const letterBonusMap = getLetterBonusMap();
-  const wordBonus = parseInt(document.getElementById("wordBonus").value, 10);
+  const bonusMap = getLetterBonusMap();
+  const wordBonus = parseInt(document.getElementById("wordBonus").value);
+  const score = calculateScrabbleScoreWithBonuses(word, bonusMap, wordBonus);
 
-  const score = calculateScrabbleScoreWithBonuses(
-    wordRaw,
-    letterBonusMap,
-    wordBonus
-  );
   scores[player] += score;
-
-  history.push({ player, word: wordRaw, score });
+  history.push({ player, word, score });
 
   document.getElementById(`score${player}`).innerText = scores[player];
   document.getElementById("word-score").innerText = `✅ Score: ${score}`;
-  document.getElementById("definition").innerText = definitions[wordRaw] || "";
+  document.getElementById("definition").innerText = definitions[word] || "";
 
   wordInput.value = "";
   updateLetterBonuses();
+  updateWordValidity();
 
-  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  currentPlayer = (currentPlayer % totalPlayers) + 1;
   updateTurnUI();
 }
 
-function checkWordPlayable() {
-  const word = document.getElementById("wordInput").value.trim().toLowerCase();
-  if (!word) return;
+function updateTurnUI() {
+  for (let i = 1; i <= totalPlayers; i++) {
+    const tile = document.getElementById(`score${i}`);
+    if (tile?.parentElement) {
+      tile.parentElement.style.opacity = i === currentPlayer ? "1" : "0.5";
+    }
+  }
 
-  if (definitions[word]) {
+  document.querySelectorAll("#playerButtons button").forEach((btn, idx) => {
+    btn.disabled = idx + 1 !== currentPlayer;
+  });
+
+  const wordInput = document.getElementById("wordInput");
+  const wordBonus = document.getElementById("wordBonus");
+  if (wordInput) wordInput.disabled = false;
+  if (wordBonus) wordBonus.disabled = false;
+}
+
+function updateWordValidity() {
+  const wordInput = document.getElementById("wordInput");
+  if (!wordInput) return;
+  const word = wordInput.value.trim().toLowerCase();
+
+  if (!dictionaryReady) {
+    document.getElementById("word-score").innerText = "Loading dictionary...";
+    document.getElementById("definition").innerText = "";
+    return;
+  }
+
+  if (word.length === 0) {
+    document.getElementById("word-score").innerText = "";
+    document.getElementById("definition").innerText = "";
+    return;
+  }
+
+  if (validWords.has(word)) {
     document.getElementById("word-score").innerText = "✅ Playable word";
-    document.getElementById("definition").innerText = definitions[word];
+    document.getElementById("definition").innerText = definitions[word] || "";
   } else {
     document.getElementById("word-score").innerText = "❌ Not a playable word";
     document.getElementById("definition").innerText = "";
@@ -215,43 +275,41 @@ function checkWordPlayable() {
 
 function undoLastAction() {
   if (history.length === 0) {
-    alert("No actions to undo.");
+    alert("Nothing to undo.");
     return;
   }
-  const lastAction = history.pop();
-  scores[lastAction.player] -= lastAction.score;
-  if (scores[lastAction.player] < 0) scores[lastAction.player] = 0;
-
-  document.getElementById(`score${lastAction.player}`).innerText =
-    scores[lastAction.player];
-  document.getElementById(
-    "word-score"
-  ).innerText = `Undo last word "${lastAction.word}".`;
+  const last = history.pop();
+  scores[last.player] -= last.score;
+  if (scores[last.player] < 0) scores[last.player] = 0;
+  document.getElementById(`score${last.player}`).innerText =
+    scores[last.player];
+  document.getElementById("word-score").innerText = `Undo: ${last.word}`;
   document.getElementById("definition").innerText = "";
-
-  currentPlayer = lastAction.player;
+  currentPlayer = last.player;
   updateTurnUI();
 }
 
-function updateTurnUI() {
-  for (let p = 1; p <= 2; p++) {
-    const playerDiv = document.getElementById(`score${p}`).parentElement;
-    playerDiv.style.opacity = p === currentPlayer ? "1" : "0.5";
+function showHistoryLog() {
+  const historyList = document.getElementById("historyList");
+  historyList.innerHTML = "";
+
+  if (history.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "No history yet.";
+    historyList.appendChild(li);
+  } else {
+    history.forEach(({ player, word, score }, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${
+        playerNames[player]
+      } played "${word.toUpperCase()}" for ${score} points`;
+      historyList.appendChild(li);
+    });
   }
 
-  const buttons = document.querySelectorAll(".buttons button");
-  buttons.forEach((button) => {
-    if (
-      button.textContent.includes(`Player ${currentPlayer}`) ||
-      button.textContent.includes("Dictionary Lookup") ||
-      button.textContent.includes("Undo")
-    ) {
-      button.disabled = false;
-    } else {
-      button.disabled = true;
-    }
-  });
+  document.getElementById("historyModal").style.display = "flex";
+}
 
-  document.getElementById("wordInput").disabled = false;
-  document.getElementById("wordBonus").disabled = false;
+function closeHistory() {
+  document.getElementById("historyModal").style.display = "none";
 }
