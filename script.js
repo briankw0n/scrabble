@@ -4,20 +4,17 @@ let currentPlayer = 1;
 let playerNames = {};
 let totalPlayers = 2;
 
-const letterScores = {
-  A: 1,  B: 3,  C: 3,  D: 2,  E: 1,
-  F: 4,  G: 2,  H: 4,  I: 1,  J: 8,
-  K: 5,  L: 1,  M: 3,  N: 1,  O: 1,
-  P: 3,  Q: 10, R: 1,  S: 1,  T: 1,
-  U: 1,  V: 4,  W: 4,  X: 8,  Y: 4,
-  Z: 10,
+const LETTER_SCORES = {
+  A: 1,  B: 3,  C: 3,  D: 2,  E: 1,  F: 4,
+  G: 2,  H: 4,  I: 1,  J: 8,  K: 5,  L: 1,
+  M: 3,  N: 1,  O: 1,  P: 3,  Q: 10, R: 1,
+  S: 1,  T: 1,  U: 1,  V: 4,  W: 4,  X: 8,
+  Y: 4,  Z: 10,
 };
 
 let validWords = new Set();
 let definitions = {};
 let dictionaryReady = false;
-
-// This will hold letter bonus states per letter index: 1=none, 2=double, 3=triple
 let letterBonusMap = {};
 
 window.addEventListener("load", () => {
@@ -57,7 +54,7 @@ function showGameScreen() {
   document.getElementById("game-screen").style.display = "block";
   renderScoreboardAndButtons();
   updateTurnUI();
-  updateWordDisplay();  // Show clickable letters above input
+  updateWordDisplay();
   updateWordValidity();
 }
 
@@ -134,14 +131,13 @@ function setupInputListener() {
   const input = document.getElementById("wordInput");
   if (input) {
     input.addEventListener("input", () => {
-      letterBonusMap = {}; // reset letter bonuses on input change
+      letterBonusMap = {};
       updateWordDisplay();
       updateWordValidity();
     });
   }
 }
 
-// NEW: updateWordDisplay shows the entered word as clickable letters
 function updateWordDisplay() {
   const wordInput = document.getElementById("wordInput");
   const wordDisplay = document.getElementById("wordDisplay");
@@ -149,7 +145,6 @@ function updateWordDisplay() {
 
   const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
 
-  // Clear current display
   wordDisplay.innerHTML = "";
 
   for (let i = 0; i < word.length; i++) {
@@ -158,20 +153,18 @@ function updateWordDisplay() {
     span.className = "letter";
     span.textContent = letter;
 
-    // Set bonus class for styling
     if (letterBonusMap[i] === 2) {
       span.classList.add("bonus-double");
     } else if (letterBonusMap[i] === 3) {
       span.classList.add("bonus-triple");
     }
 
-    // On click, cycle bonus: none(1) -> double(2) -> triple(3) -> none(1)
     span.onclick = () => {
       const current = letterBonusMap[i] || 1;
       const next = current === 3 ? 1 : current + 1;
       letterBonusMap[i] = next;
-      updateWordDisplay(); // re-render to update styles
-      updateWordValidity(); // update score and feedback
+      updateWordDisplay();
+      updateWordValidity();
     };
 
     wordDisplay.appendChild(span);
@@ -179,10 +172,8 @@ function updateWordDisplay() {
 }
 
 function getLetterBonusMap() {
-  // Return current letterBonusMap, defaulting to 1 for letters without assigned bonus
   const result = {};
   for (let i = 0; i < 100; i++) {
-    // arbitrary large upper bound to avoid keys with no letters
     if (letterBonusMap[i]) {
       result[i] = letterBonusMap[i];
     }
