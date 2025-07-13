@@ -310,6 +310,10 @@ h1 {
   margin-bottom: 2rem;
 }
 
+.result.undo-message {
+  margin-bottom: 2rem;
+}
+
 @media (max-width: 480px) {
   html {
     background-color: #3e2b1e;
