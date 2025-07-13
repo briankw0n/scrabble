@@ -157,6 +157,13 @@ function setupInputListener() {
       updateWordValidity();
     });
   }
+
+  const wordBonus = document.getElementById("wordBonus");
+  if (wordBonus) {
+    wordBonus.addEventListener("change", () => {
+      updateWordValidity();
+    });
+  }
 }
 
 function updateWordDisplay() {
