@@ -17,6 +17,9 @@ let validWords = new Set();
 let definitions = {};
 let dictionaryReady = false;
 
+// This will hold letter bonus states per letter index: 1=none, 2=double, 3=triple
+let letterBonusMap = {};
+
 window.addEventListener("load", () => {
   fetch("words.json")
     .then((res) => res.json())
@@ -54,7 +57,7 @@ function showGameScreen() {
   document.getElementById("game-screen").style.display = "block";
   renderScoreboardAndButtons();
   updateTurnUI();
-  updateLetterBonuses();
+  updateWordDisplay();  // Show clickable letters above input
   updateWordValidity();
 }
 
@@ -86,6 +89,7 @@ function startGame() {
   scores = {};
   playerNames = {};
   history = [];
+  letterBonusMap = {};
   for (let i = 1; i <= totalPlayers; i++) {
     const name =
       document.getElementById(`playerName${i}`).value.trim() || `Player ${i}`;
@@ -130,50 +134,60 @@ function setupInputListener() {
   const input = document.getElementById("wordInput");
   if (input) {
     input.addEventListener("input", () => {
-      updateLetterBonuses();
+      letterBonusMap = {}; // reset letter bonuses on input change
+      updateWordDisplay();
       updateWordValidity();
     });
   }
 }
 
-function updateLetterBonuses() {
+// NEW: updateWordDisplay shows the entered word as clickable letters
+function updateWordDisplay() {
   const wordInput = document.getElementById("wordInput");
-  if (!wordInput) return;
-  const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
-  const container = document.getElementById("letterBonuses");
-  if (!container) return;
+  const wordDisplay = document.getElementById("wordDisplay");
+  if (!wordInput || !wordDisplay) return;
 
-  container.innerHTML = "";
+  const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
+
+  // Clear current display
+  wordDisplay.innerHTML = "";
+
   for (let i = 0; i < word.length; i++) {
     const letter = word[i];
-    const div = document.createElement("div");
-    div.className = "letter-bonus";
-
     const span = document.createElement("span");
+    span.className = "letter";
     span.textContent = letter;
-    div.appendChild(span);
 
-    const select = document.createElement("select");
-    select.dataset.index = i;
+    // Set bonus class for styling
+    if (letterBonusMap[i] === 2) {
+      span.classList.add("bonus-double");
+    } else if (letterBonusMap[i] === 3) {
+      span.classList.add("bonus-triple");
+    }
 
-    ["None", "Double Letter", "Triple Letter"].forEach((text, idx) => {
-      const option = document.createElement("option");
-      option.value = idx + 1;
-      option.textContent = text;
-      select.appendChild(option);
-    });
+    // On click, cycle bonus: none(1) -> double(2) -> triple(3) -> none(1)
+    span.onclick = () => {
+      const current = letterBonusMap[i] || 1;
+      const next = current === 3 ? 1 : current + 1;
+      letterBonusMap[i] = next;
+      updateWordDisplay(); // re-render to update styles
+      updateWordValidity(); // update score and feedback
+    };
 
-    div.appendChild(select);
-    container.appendChild(div);
+    wordDisplay.appendChild(span);
   }
 }
 
 function getLetterBonusMap() {
-  const bonusMap = {};
-  document.querySelectorAll("#letterBonuses select").forEach((sel) => {
-    bonusMap[parseInt(sel.dataset.index)] = parseInt(sel.value);
-  });
-  return bonusMap;
+  // Return current letterBonusMap, defaulting to 1 for letters without assigned bonus
+  const result = {};
+  for (let i = 0; i < 100; i++) {
+    // arbitrary large upper bound to avoid keys with no letters
+    if (letterBonusMap[i]) {
+      result[i] = letterBonusMap[i];
+    }
+  }
+  return result;
 }
 
 function calculateScrabbleScoreWithBonuses(word, letterBonusMap, wordBonus) {
@@ -222,7 +236,8 @@ function addToPlayer(player) {
   document.getElementById("definition").innerText = definitions[word] || "";
 
   wordInput.value = "";
-  updateLetterBonuses();
+  letterBonusMap = {};
+  updateWordDisplay();
   updateWordValidity();
 
   currentPlayer = (currentPlayer % totalPlayers) + 1;
@@ -249,27 +264,44 @@ function updateTurnUI() {
 
 function updateWordValidity() {
   const wordInput = document.getElementById("wordInput");
-  if (!wordInput) return;
+  const scoreEl = document.getElementById("word-score");
+  const defEl = document.getElementById("definition");
+  if (!wordInput || !scoreEl || !defEl) return;
+
   const word = wordInput.value.trim().toLowerCase();
 
   if (!dictionaryReady) {
-    document.getElementById("word-score").innerText = "Loading dictionary...";
-    document.getElementById("definition").innerText = "";
+    scoreEl.innerText = "Loading dictionary...";
+    defEl.innerText = "";
+    scoreEl.classList.remove("hidden");
+    defEl.classList.add("hidden");
+    scoreEl.classList.remove("not-playable");
     return;
   }
 
   if (word.length === 0) {
-    document.getElementById("word-score").innerText = "";
-    document.getElementById("definition").innerText = "";
+    scoreEl.classList.add("hidden");
+    defEl.classList.add("hidden");
+    scoreEl.classList.remove("not-playable");
     return;
   }
 
   if (validWords.has(word)) {
-    document.getElementById("word-score").innerText = "✅ Playable word";
-    document.getElementById("definition").innerText = definitions[word] || "";
+    const bonusMap = getLetterBonusMap();
+    const wordBonus = parseInt(document.getElementById("wordBonus").value);
+    const score = calculateScrabbleScoreWithBonuses(word, bonusMap, wordBonus);
+    scoreEl.innerText = `✅ Score: ${score}`;
+    defEl.innerText = definitions[word] || "";
+
+    scoreEl.classList.remove("hidden", "not-playable");
+    defEl.classList.remove("hidden");
   } else {
-    document.getElementById("word-score").innerText = "❌ Not a playable word";
-    document.getElementById("definition").innerText = "";
+    scoreEl.innerText = "❌ Not a playable word";
+    defEl.innerText = "";
+
+    scoreEl.classList.remove("hidden");
+    scoreEl.classList.add("not-playable");
+    defEl.classList.add("hidden");
   }
 }
 
