@@ -188,7 +188,7 @@ function calculateScrabbleScoreWithBonuses(word, letterBonusMap, wordBonus) {
       .split("")
       .reduce(
         (sum, char, i) =>
-          sum + (letterScores[char] || 0) * (letterBonusMap[i] || 1),
+          sum + (LETTER_SCORES[char] || 0) * (letterBonusMap[i] || 1),
         0
       ) * wordBonus
   );
