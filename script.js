@@ -5,11 +5,32 @@ let playerNames = {};
 let totalPlayers = 2;
 
 const LETTER_SCORES = {
-  A: 1,  B: 3,  C: 3,  D: 2,  E: 1,  F: 4,
-  G: 2,  H: 4,  I: 1,  J: 8,  K: 5,  L: 1,
-  M: 3,  N: 1,  O: 1,  P: 3,  Q: 10, R: 1,
-  S: 1,  T: 1,  U: 1,  V: 4,  W: 4,  X: 8,
-  Y: 4,  Z: 10,
+  A: 1,
+  B: 3,
+  C: 3,
+  D: 2,
+  E: 1,
+  F: 4,
+  G: 2,
+  H: 4,
+  I: 1,
+  J: 8,
+  K: 5,
+  L: 1,
+  M: 3,
+  N: 1,
+  O: 1,
+  P: 3,
+  Q: 10,
+  R: 1,
+  S: 1,
+  T: 1,
+  U: 1,
+  V: 4,
+  W: 4,
+  X: 8,
+  Y: 4,
+  Z: 10,
 };
 
 let validWords = new Set();
@@ -261,6 +282,8 @@ function updateWordValidity() {
 
   const word = wordInput.value.trim().toLowerCase();
 
+  scoreEl.classList.remove("undo-message");
+
   if (!dictionaryReady) {
     scoreEl.innerText = "Loading dictionary...";
     defEl.innerText = "";
@@ -297,19 +320,42 @@ function updateWordValidity() {
 }
 
 function undoLastAction() {
+  const scoreEl = document.getElementById("word-score");
+  const defEl = document.getElementById("definition");
+  const wordInput = document.getElementById("wordInput");
+
+  if (!scoreEl || !defEl) return;
+
   if (history.length === 0) {
-    alert("Nothing to undo.");
+    scoreEl.innerText = "Nothing to undo.";
+    defEl.innerText = "";
+    scoreEl.classList.remove("hidden", "not-playable");
+    scoreEl.classList.add("undo-message");
+    defEl.classList.add("hidden");
     return;
   }
+
   const last = history.pop();
   scores[last.player] -= last.score;
   if (scores[last.player] < 0) scores[last.player] = 0;
   document.getElementById(`score${last.player}`).innerText =
     scores[last.player];
-  document.getElementById("word-score").innerText = `Undo: ${last.word}`;
-  document.getElementById("definition").innerText = "";
+
   currentPlayer = last.player;
   updateTurnUI();
+
+  if (wordInput) wordInput.value = "";
+  letterBonusMap = {};
+  updateWordDisplay();
+  updateWordValidity();
+
+  scoreEl.innerText = `↩️ Undo: ${last.word.toUpperCase()} (${
+    last.score
+  } pts removed)`;
+  defEl.innerText = "";
+  scoreEl.classList.remove("hidden", "not-playable");
+  scoreEl.classList.add("undo-message");
+  defEl.classList.add("hidden");
 }
 
 function showHistoryLog() {
