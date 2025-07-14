@@ -3,6 +3,8 @@ let history = [];
 let currentPlayer = 1;
 let playerNames = {};
 let totalPlayers = 2;
+let startTime = null;
+let timerInterval = null;
 
 const LETTER_SCORES = {
   A: 1,
@@ -115,6 +117,8 @@ function startGame() {
     scores[i] = 0;
   }
   currentPlayer = 1;
+  startTime = Date.now();
+  startStopwatch();
   showGameScreen();
 }
 
@@ -160,9 +164,7 @@ function setupInputListener() {
 
   const wordBonus = document.getElementById("wordBonus");
   if (wordBonus) {
-    wordBonus.addEventListener("change", () => {
-      updateWordValidity();
-    });
+    wordBonus.addEventListener("change", updateWordValidity);
   }
 }
 
@@ -172,7 +174,6 @@ function updateWordDisplay() {
   if (!wordInput || !wordDisplay) return;
 
   const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
-
   wordDisplay.innerHTML = "";
 
   for (let i = 0; i < word.length; i++) {
@@ -278,7 +279,10 @@ function updateTurnUI() {
   const wordInput = document.getElementById("wordInput");
   const wordBonus = document.getElementById("wordBonus");
   if (wordInput) wordInput.disabled = false;
-  if (wordBonus) wordBonus.disabled = false;
+  if (wordBonus) {
+    wordBonus.disabled = false;
+    wordBonus.value = "1";
+  }
 }
 
 function updateWordValidity() {
@@ -288,7 +292,6 @@ function updateWordValidity() {
   if (!wordInput || !scoreEl || !defEl) return;
 
   const word = wordInput.value.trim().toLowerCase();
-
   scoreEl.classList.remove("undo-message");
 
   if (!dictionaryReady) {
@@ -313,13 +316,11 @@ function updateWordValidity() {
     const score = calculateScrabbleScoreWithBonuses(word, bonusMap, wordBonus);
     scoreEl.innerText = `✅ Score: ${score}`;
     defEl.innerText = definitions[word] || "";
-
     scoreEl.classList.remove("hidden", "not-playable");
     defEl.classList.remove("hidden");
   } else {
     scoreEl.innerText = "❌ Not a playable word";
     defEl.innerText = "";
-
     scoreEl.classList.remove("hidden");
     scoreEl.classList.add("not-playable");
     defEl.classList.add("hidden");
@@ -376,9 +377,15 @@ function showHistoryLog() {
   } else {
     history.forEach(({ player, word, score }, index) => {
       const li = document.createElement("li");
-      li.textContent = `${index + 1}. ${
-        playerNames[player]
-      } played "${word.toUpperCase()}" for ${score} points`;
+      if (word === "(PASS)") {
+        li.textContent = `${index + 1}. ${
+          playerNames[player]
+        } passed their turn`;
+      } else {
+        li.textContent = `${index + 1}. ${
+          playerNames[player]
+        } played "${word.toUpperCase()}" for ${score} points`;
+      }
       historyList.appendChild(li);
     });
   }
@@ -388,4 +395,34 @@ function showHistoryLog() {
 
 function closeHistory() {
   document.getElementById("historyModal").style.display = "none";
+}
+
+function passTurn() {
+  history.push({
+    player: currentPlayer,
+    word: "(PASS)",
+    score: 0,
+  });
+
+  letterBonusMap = {};
+  document.getElementById("wordInput").value = "";
+  updateWordDisplay();
+  updateWordValidity();
+
+  currentPlayer = (currentPlayer % totalPlayers) + 1;
+  updateTurnUI();
+}
+
+function startStopwatch() {
+  const stopwatch = document.getElementById("stopwatch");
+  if (!stopwatch) return;
+
+  clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+    const seconds = String(elapsed % 60).padStart(2, "0");
+    stopwatch.textContent = `Time: ${minutes}:${seconds}`;
+  }, 1000);
 }
