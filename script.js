@@ -39,6 +39,7 @@ let validWords = new Set();
 let definitions = {};
 let dictionaryReady = false;
 let letterBonusMap = {};
+let gameStarted = false;
 
 window.addEventListener("load", () => {
   fetch("words.json")
@@ -48,6 +49,10 @@ window.addEventListener("load", () => {
       dictionaryReady = true;
       const scoreEl = document.getElementById("word-score");
       if (scoreEl) scoreEl.innerText = "Dictionary loaded.";
+
+      if (gameStarted) {
+        updateTurnUI();
+      }
     })
     .catch(() => alert("Failed to load dictionary."));
 
@@ -124,7 +129,9 @@ function startGame() {
   currentPlayer = 1;
   startTime = Date.now();
   startStopwatch();
+  gameStarted = true;
   showGameScreen();
+  updateTurnUI();
 }
 
 function renderScoreboardAndButtons() {
