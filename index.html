@@ -9,24 +9,22 @@
   <body>
     <div id="setup-screen" class="container">
       <h1>Scrabble</h1>
-
       <label for="playerCount">Number of Players:</label>
       <select id="playerCount" onchange="showNameInputs()">
         <option value="2" selected>2</option>
         <option value="3">3</option>
         <option value="4">4</option>
       </select>
-
       <div id="nameInputs" class="name-inputs"></div>
       <button onclick="startGame()">Start Game</button>
     </div>
 
     <div id="game-screen" class="container" style="display: none">
+      <div id="stopwatch" class="stopwatch">Time: 00:00</div>
       <div id="scoreboard" class="scoreboard"></div>
 
       <div class="input-section">
         <div id="wordDisplay" class="word-display"></div>
-
         <input
           type="text"
           id="wordInput"
@@ -51,6 +49,7 @@
           <div class="button-row">
             <button onclick="showHistoryLog()">History</button>
             <button onclick="undoLastAction()">Undo</button>
+            <button onclick="passTurn()">Pass</button>
           </div>
         </div>
       </div>
