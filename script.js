@@ -41,10 +41,6 @@ let dictionaryReady = false;
 let letterBonusMap = {};
 
 window.addEventListener("load", () => {
-  document.getElementById("startGameBtn").disabled = true;
-  document.getElementById("wordInput").disabled = true;
-  document.getElementById("wordBonus").disabled = true;
-
   fetch("words.json")
     .then((res) => res.json())
     .then((data) => {
@@ -52,10 +48,6 @@ window.addEventListener("load", () => {
       dictionaryReady = true;
       const scoreEl = document.getElementById("word-score");
       if (scoreEl) scoreEl.innerText = "Dictionary loaded.";
-
-      document.getElementById("startGameBtn").disabled = false;
-      document.getElementById("wordInput").disabled = false;
-      document.getElementById("wordBonus").disabled = false;
     })
     .catch(() => alert("Failed to load dictionary."));
 
@@ -109,29 +101,21 @@ function showNameInputs() {
 }
 
 function startGame() {
-  if (!dictionaryReady) {
-    alert("Please wait for the dictionary to finish loading.");
-    return;
-  }
-
   totalPlayers = parseInt(document.getElementById("playerCount").value, 10);
   if (totalPlayers < 2) {
     alert("Please select at least 2 players.");
     return;
   }
-
   scores = {};
   playerNames = {};
   history = [];
   letterBonusMap = {};
-
   for (let i = 1; i <= totalPlayers; i++) {
     const name =
       document.getElementById(`playerName${i}`).value.trim() || `Player ${i}`;
     playerNames[i] = name;
     scores[i] = 0;
   }
-
   currentPlayer = 1;
   startTime = Date.now();
   startStopwatch();
