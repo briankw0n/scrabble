@@ -85,6 +85,7 @@ function showNameInputs() {
   const count = parseInt(document.getElementById("playerCount").value, 10);
   const nameInputsDiv = document.getElementById("nameInputs");
   nameInputsDiv.innerHTML = "";
+
   for (let i = 1; i <= count; i++) {
     const input = document.createElement("input");
     input.type = "text";
@@ -102,20 +103,24 @@ function showNameInputs() {
 
 function startGame() {
   totalPlayers = parseInt(document.getElementById("playerCount").value, 10);
+  
   if (totalPlayers < 2) {
     alert("Please select at least 2 players.");
     return;
   }
+
   scores = {};
   playerNames = {};
   history = [];
   letterBonusMap = {};
+  
   for (let i = 1; i <= totalPlayers; i++) {
     const name =
       document.getElementById(`playerName${i}`).value.trim() || `Player ${i}`;
     playerNames[i] = name;
     scores[i] = 0;
   }
+
   currentPlayer = 1;
   startTime = Date.now();
   startStopwatch();
@@ -224,23 +229,28 @@ function calculateScrabbleScoreWithBonuses(word, letterBonusMap, wordBonus) {
 }
 
 function addToPlayer(player) {
+  const wordInput = document.getElementById("wordInput");
+  const scoreEl = document.getElementById("word-score");
+  const defEl = document.getElementById("definition");
+
   if (!dictionaryReady) {
-    alert("Dictionary is still loading.");
+    if (scoreEl) scoreEl.innerText = "⏳ Dictionary is still loading...";
+    if (defEl) defEl.innerText = "";
     return;
   }
 
   if (player !== currentPlayer) {
-    alert(`It's ${playerNames[currentPlayer]}'s turn.`);
+    if (scoreEl) scoreEl.innerText = `It's ${playerNames[currentPlayer]}'s turn.`;
+    if (defEl) defEl.innerText = "";
     return;
   }
 
-  const wordInput = document.getElementById("wordInput");
   if (!wordInput) return;
   const word = wordInput.value.trim().toLowerCase();
 
   if (!word || !validWords.has(word)) {
-    document.getElementById("word-score").innerText = "❌ Not a playable word";
-    document.getElementById("definition").innerText = "";
+    scoreEl.innerText = "❌ Not a playable word";
+    defEl.innerText = "";
     return;
   }
 
@@ -252,8 +262,8 @@ function addToPlayer(player) {
   history.push({ player, word, score });
 
   document.getElementById(`score${player}`).innerText = scores[player];
-  document.getElementById("word-score").innerText = `✅ Score: ${score}`;
-  document.getElementById("definition").innerText = definitions[word] || "";
+  scoreEl.innerText = `✅ Score: ${score}`;
+  defEl.innerText = definitions[word] || "";
 
   wordInput.value = "";
   letterBonusMap = {};
