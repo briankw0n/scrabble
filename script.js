@@ -278,19 +278,21 @@ function updateTurnUI() {
   for (let i = 1; i <= totalPlayers; i++) {
     const tile = document.getElementById(`score${i}`);
     if (tile?.parentElement) {
-      tile.parentElement.style.opacity = i === currentPlayer ? "1" : "0.5";
+      tile.parentElement.style.opacity =
+        dictionaryReady && i === currentPlayer ? "1" : "0.5";
     }
   }
 
   document.querySelectorAll("#playerButtons button").forEach((btn, idx) => {
-    btn.disabled = idx + 1 !== currentPlayer;
+    btn.disabled = !dictionaryReady || idx + 1 !== currentPlayer;
   });
 
   const wordInput = document.getElementById("wordInput");
   const wordBonus = document.getElementById("wordBonus");
-  if (wordInput) wordInput.disabled = false;
+
+  if (wordInput) wordInput.disabled = !dictionaryReady;
   if (wordBonus) {
-    wordBonus.disabled = false;
+    wordBonus.disabled = !dictionaryReady;
     wordBonus.value = "1";
   }
 }
