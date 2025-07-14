@@ -108,7 +108,7 @@ function showNameInputs() {
 
 function startGame() {
   totalPlayers = parseInt(document.getElementById("playerCount").value, 10);
-  
+
   if (totalPlayers < 2) {
     alert("Please select at least 2 players.");
     return;
@@ -118,7 +118,7 @@ function startGame() {
   playerNames = {};
   history = [];
   letterBonusMap = {};
-  
+
   for (let i = 1; i <= totalPlayers; i++) {
     const name =
       document.getElementById(`playerName${i}`).value.trim() || `Player ${i}`;
@@ -240,14 +240,9 @@ function addToPlayer(player) {
   const scoreEl = document.getElementById("word-score");
   const defEl = document.getElementById("definition");
 
-  if (!dictionaryReady) {
-    if (scoreEl) scoreEl.innerText = "⏳ Dictionary is still loading...";
-    if (defEl) defEl.innerText = "";
-    return;
-  }
-
   if (player !== currentPlayer) {
-    if (scoreEl) scoreEl.innerText = `It's ${playerNames[currentPlayer]}'s turn.`;
+    if (scoreEl)
+      scoreEl.innerText = `It's ${playerNames[currentPlayer]}'s turn.`;
     if (defEl) defEl.innerText = "";
     return;
   }
@@ -256,8 +251,8 @@ function addToPlayer(player) {
   const word = wordInput.value.trim().toLowerCase();
 
   if (!word || !validWords.has(word)) {
-    scoreEl.innerText = "❌ Not a playable word";
-    defEl.innerText = "";
+    if (scoreEl) scoreEl.innerText = "❌ Not a playable word";
+    if (defEl) defEl.innerText = "";
     return;
   }
 
@@ -269,8 +264,8 @@ function addToPlayer(player) {
   history.push({ player, word, score });
 
   document.getElementById(`score${player}`).innerText = scores[player];
-  scoreEl.innerText = `✅ Score: ${score}`;
-  defEl.innerText = definitions[word] || "";
+  if (scoreEl) scoreEl.innerText = `✅ Score: ${score}`;
+  if (defEl) defEl.innerText = definitions[word] || "";
 
   wordInput.value = "";
   letterBonusMap = {};
